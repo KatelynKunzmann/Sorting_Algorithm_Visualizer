@@ -54,8 +54,12 @@ def draw(draw_info):
     draw_list(draw_info)
     pygame.display.update()
 
-def draw_list(draw_info):
+def draw_list(draw_info, color_pos = {}, clear_bg = False):
     lst = draw_info.lst
+
+    if clear_bg:
+        clear_rectangle = (draw_info.SIDE_PAD//2, draw_info.TOP_PAD, draw_info.width - draw_info.SIDE_PAD, draw_info.height - draw_info.TOP_PAD)
+        pygame.draw.rect(draw_info.window, draw_info.BG_COLOR, clear_rectangle)
 
     for i, val in enumerate(lst):
         x = draw_info.start_x + i * draw_info.block_width
@@ -64,7 +68,12 @@ def draw_list(draw_info):
         # Every 3 elements will have 3 different shades of gray, then it resets
         color = draw_info.GRADIENTS[i % 3]
 
+        if i in color_pos:
+            color = color_pos[i]
+
         pygame.draw.rect(draw_info.window, color, (x, y, draw_info.block_width, draw_info.height))
+    if clear_bg:
+        pygame.display.update()
 
 def generate_start_list(n, min_val, max_val):
     lst = []
@@ -75,7 +84,27 @@ def generate_start_list(n, min_val, max_val):
 
     return lst
 
+######################## SORTING ALGORITHMS ###############################
 
+def bubble_sort(draw_info, ascending=True):
+    lst = draw_info.lst
+
+    for i in range(len(lst) - 1):
+        for j in range(len(lst) - 1 - i):
+            num1 = lst[j]
+            num2 = lst[j+1]
+
+            if (num1 > num2 and ascending) or (num1 < num2 and not ascending):
+                lst[j], lst[j+1] = lst[j+1], lst[j]
+                #draw_list()
+                # Yield keyword Pauses the execution sort of halfway through and stores the current state of the function - creates a generator
+                # Will allow us to continue using controls like 'exit'
+                draw_list(draw_info, {j: draw_info.GREEN, j+1: draw_info.RED}, True)
+                yield True
+
+    return lst
+
+######################## END SORTING ALGORITHMS ###############################
 
 def main():
     running = True
@@ -89,10 +118,23 @@ def main():
     draw_info = DrawInformation(800, 600, lst)
     sorting = False
     ascending = True
+
+    sorting_algo = bubble_sort
+    sorting_algo_name = "Bubble Sort"
+    sorting_algo_generator = None
+
     # Constant loop to keep window active
     while running:
         # Maximum amount of times the loop can run per second (fps)
         clock.tick(60)
+
+        if sorting:
+            try:
+                next(sorting_algo_generator)
+            except StopIteration: # Generator is finished
+                sorting = False
+        else:
+            draw(draw_info)
 
         draw(draw_info)
 
@@ -110,6 +152,7 @@ def main():
                 sorting = False
             elif event.key == pygame.K_SPACE and sorting == False:
                 sorting = True
+                sorting_algo_generator = sorting_algo(draw_info, ascending)
             elif event.key == pygame.K_a and not sorting:
                 ascending = True
             elif event.key == pygame.K_d and not sorting:
