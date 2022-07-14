@@ -102,7 +102,7 @@ def bubble_sort(draw_info, ascending=True):
             if (num1 > num2 and ascending) or (num1 < num2 and not ascending):
                 lst[j], lst[j+1] = lst[j+1], lst[j]
                 # Yield keyword for whenever you want to draw something
-                # It pauses the execution sort of halfway through and stores the current state of the function - creates a generator
+                # It pauses the execution sortof halfway through and stores the current state of the function - creates a generator
                 # Will allow us to continue using controls like 'exit'
                 draw_list(draw_info, {j: draw_info.GREEN, j+1: draw_info.RED}, True)
                 yield True
@@ -129,6 +129,48 @@ def insertion_sort(draw_info, ascending=True):
                 lst[i] = current
                 draw_list(draw_info, {i-1: draw_info.GREEN, i: draw_info.RED}, True)
                 yield True
+
+    return lst
+
+def merge_sort(draw_info, ascending=True):
+    lst = draw_info.lst
+
+    mid = len(lst)//2
+    left = lst[:mid]
+    right = lst[mid:]
+
+    merge_sort(left)
+    merge_sort(right)
+
+    i = j = k = 0
+
+    while i < len(left) and j < len(right):
+        # ascending_sort = lst[i-1] > lst[i] and ascending
+        # descending_sort = lst[i-1] < lst[i] and not ascending
+
+        if left[i] < right[j]:
+            lst[k] = left[i]
+            i+=1
+        else:
+            lst[k] = right[j]
+            j+=1
+        k+=1
+        draw_list(draw_info, {k: draw_info.GREEN, k+1: draw_info.RED}, True)
+        yield True
+
+    while i < len(left):
+        lst[k] = left[i]
+        i+=1
+        k+=1
+        draw_list(draw_info, {k: draw_info.GREEN, k+1: draw_info.RED}, True)
+        yield True
+    while j < len(right):
+        lst[k] = right[j]
+        j+=1
+        k+=1
+        draw_list(draw_info, {k: draw_info.GREEN, k+1: draw_info.RED}, True)
+        yield True
+        
 
     return lst
 
@@ -191,6 +233,9 @@ def main():
             elif event.key == pygame.K_b and not sorting:
                 sorting_algo = bubble_sort
                 sorting_algo_name = "Bubble Sort"
+            elif event.key == pygame.K_m and not sorting:
+                sorting_algo = merge_sort
+                sorting_algo_name = "Merge Sort"
             
 
         
